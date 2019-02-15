@@ -1,0 +1,8 @@
+solid.user.profile:
+  path: '/user/{user}/solid'
+  defaults:
+    _controller: '\Drupal\sld\Controller\ProfileController::page'
+    _title: 'Solid'
+  requirements:
+    _custom_access: '\Drupal\sld\Controller\ProfileController::access'
+    user: \d+

@@ -1,0 +1,5 @@
+name: Solid
+type: module
+description: Solid integration.
+core: 8.x
+package: Solid

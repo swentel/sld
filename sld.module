@@ -1,0 +1,67 @@
+<?php
+
+/**
+ * @file
+ * Solid integration for Drupal
+ */
+
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\user\UserInterface;
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ *
+ * Add the solid settings to an individual user's account page.
+ *
+ * @see \Drupal\user\ProfileForm::form()
+ */
+function sld_form_user_form_alter(&$form, FormStateInterface $form_state) {
+
+  /** @var \Drupal\user\UserInterface $account */
+  $account = $form_state->getFormObject()->getEntity();
+
+  if ($account->id()) {
+
+    $form['solid'] = [
+      '#type' => 'details',
+      '#title' => t('Solid settings'),
+      '#open' => TRUE,
+      '#weight' => 5,
+    ];
+
+    $form['solid']['enabled'] = [
+      '#type' => 'checkbox',
+      '#title' => t('Enable'),
+      '#default_value' => sld_enabled($account),
+      '#description' => t('Expose a Solid WebID for your account on /user/@uid/solid#me.', ['@uid' => $account->id()]),
+    ];
+    $form['actions']['submit']['#submit'][] = 'sld_user_profile_form_submit';
+  }
+
+}
+
+/**
+ * Submit callback for the user profile form to save the solid setting.
+ */
+function sld_user_profile_form_submit($form, FormStateInterface $form_state) {
+  $account = $form_state->getFormObject()->getEntity();
+  if ($account->id() && $form_state->hasValue('enabled')) {
+    \Drupal::service('user.data')->set('solid', $account->id(), 'enabled', (int) $form_state->getValue('enabled'));
+  }
+}
+
+/**
+ * Check if a Solid pod is enabled for this user.
+ *
+ * @param \Drupal\user\UserInterface $user
+ *
+ * @return bool|int
+ */
+function sld_enabled(UserInterface $user) {
+  $solid_enabled = FALSE;
+  if ($user->id()) {
+    $solid_enabled = (int) \Drupal::service('user.data')->get('solid', $user->id(), 'enabled');
+  }
+
+  return $solid_enabled;
+}
